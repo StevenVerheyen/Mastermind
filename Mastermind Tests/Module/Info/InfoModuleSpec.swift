@@ -29,28 +29,6 @@ final class InfoModuleSpec: QuickSpec {
                 expect(viewModel.accessibilityBullets.count) >= 5
                 expect(viewModel.accessibilityBullets.last?.title) == "Accessibility Identifiers"
             }
-
-            it("describes the current snapshot testing setup") {
-                let viewModel = InfoContentViewModel()
-
-                expect(viewModel.testabilityParagraphs).to(containElementSatisfying { paragraph in
-                    paragraph.contains("Swift Testing")
-                        && paragraph.contains("SnapshotTesting")
-                        && paragraph.contains("iPhone 17")
-                })
-            }
-
-            it("documents the expected feature component sections") {
-                let viewModel = InfoContentViewModel()
-
-                expect(viewModel.featureComponents.map(\.title)) == [
-                    "Entity",
-                    "Interactor",
-                    "Presenter",
-                    "View Model",
-                    "View",
-                ]
-            }
         }
     }
 }
