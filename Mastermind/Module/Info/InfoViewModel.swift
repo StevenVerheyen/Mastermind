@@ -48,15 +48,11 @@ final class InfoContentViewModel {
     ]
 
     let testabilityParagraphs = [
-        "The game module is testable in isolation because the engine is injected into the interactor, the presenter mutates a dedicated GameFeatureState, and each tab module wires its own parent-facing view model through factories.",
-        "Quick and Nimble are used to test the engine, interactor, presenter, and view model logic with focused behavior specs and test doubles.",
-        "InfoModuleSpec verifies that the Info module factory shares one InfoContentViewModel with its view factory and that the parent-facing InfoViewModel opens the expected feature view.",
-        "LetterResultAccessibilitySpec checks the spoken accessibility descriptions used for evaluated letters and guess history.",
-        "GameSnapshotSpec uses Swift Testing with SnapshotTesting and AccessibilitySnapshot to verify hosted SwiftUI and UIKit screens on an iPhone 17-sized canvas, including their accessibility overlay."
+        "Quick/Nimble is used to test the business logic. Quick/Nimble snapshots is used to test the UI with Swift Testing"
     ]
 
     let themingParagraphs = [
-        "The app supports light and dark mode via ThemeManager (@Observable). The theme manager is owned at the app level and passed into the tab shell so the color scheme stays shared across all tabs.",
+        "The app supports light and dark mode via ThemeManager. The theme manager is owned at the app level and passed into the tab shell so the color scheme stays shared across all tabs.",
         "For the UIKit tab, the UIKit module factory injects ThemeManager into the wrapper and controller so UIKit refreshes interface style and adaptive accent colors together."
     ]
 
@@ -78,7 +74,7 @@ final class InfoContentViewModel {
         ),
         InfoBulletContent(
             title: "Touch Targets",
-            description: "All interactive elements meet the minimum 44×44pt touch target requirement per WCAG 2.5.8. Input boxes use frame(minWidth: 44, minHeight: 44) in SwiftUI and heightAnchor.constraint(greaterThanOrEqualToConstant: 44) in UIKit."
+            description: "All interactive elements meet the A11Y guidelines per WCAG 2.5.8."
         ),
         InfoBulletContent(
             title: "Dynamic Type",

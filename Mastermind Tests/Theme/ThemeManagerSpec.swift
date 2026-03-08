@@ -59,24 +59,28 @@ final class ThemeManagerSpec: QuickSpec {
         }
 
         describe("AppColors") {
-            it("uses the expected accent colors for each appearance") {
-                expectColor(UIColor(AppColors.adaptiveAccent(for: .dark)), toMatch: AppColors.primaryUI)
-                expectColor(UIColor(AppColors.adaptiveAccent(for: .light)), toMatch: AppColors.secondaryUI)
-                expectColor(AppColors.adaptiveAccentUI(isDarkMode: true), toMatch: AppColors.primaryUI)
-                expectColor(AppColors.adaptiveAccentUI(isDarkMode: false), toMatch: AppColors.secondaryUI)
+            describe("adaptive accent colors") {
+                it("uses the expected accent colors for each appearance") {
+                    expectColor(UIColor(AppColors.adaptiveAccent(for: .dark)), toMatch: AppColors.primaryUI)
+                    expectColor(UIColor(AppColors.adaptiveAccent(for: .light)), toMatch: AppColors.secondaryUI)
+                    expectColor(AppColors.adaptiveAccentUI(isDarkMode: true), toMatch: AppColors.primaryUI)
+                    expectColor(AppColors.adaptiveAccentUI(isDarkMode: false), toMatch: AppColors.secondaryUI)
+                }
             }
 
-            it("maps each letter status to matching SwiftUI and UIKit colors") {
-                let expectedColors: [(LetterStatus, UIColor)] = [
-                    (.correct, .systemGreen),
-                    (.misplaced, .systemOrange),
-                    (.wrong, .systemRed),
-                    (.unknown, .clear)
-                ]
+            describe("status colors") {
+                it("maps each letter status to matching SwiftUI and UIKit colors") {
+                    let expectedColors: [(LetterStatus, UIColor)] = [
+                        (.correct, .systemGreen),
+                        (.misplaced, .systemOrange),
+                        (.wrong, .systemRed),
+                        (.unknown, .clear)
+                    ]
 
-                for (status, expectedColor) in expectedColors {
-                    expectColor(UIColor(AppColors.color(for: status)), toMatch: expectedColor)
-                    expectColor(AppColors.uiColor(for: status), toMatch: expectedColor)
+                    for (status, expectedColor) in expectedColors {
+                        expectColor(UIColor(AppColors.color(for: status)), toMatch: expectedColor)
+                        expectColor(AppColors.uiColor(for: status), toMatch: expectedColor)
+                    }
                 }
             }
         }

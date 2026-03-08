@@ -5,17 +5,19 @@ import Quick
 final class InfoModuleSpec: QuickSpec {
     override class func spec() {
         describe("InfoModuleFactory") {
-            it("creates a module whose view factory shares the same content view model") {
-                let module = InfoModuleFactory().createModule()
+            describe("#createModule") {
+                it("creates a module whose view factory shares the same content view model") {
+                    let module = InfoModuleFactory().createModule()
 
-                expect(module.viewFactory.contentViewModel).to(beIdenticalTo(module.contentViewModel))
-            }
+                    expect(module.viewFactory.contentViewModel).to(beIdenticalTo(module.contentViewModel))
+                }
 
-            it("creates a parent-facing view model that opens the same feature view") {
-                let module = InfoModuleFactory().createModule()
-                let view = module.viewModel.openFeature()
+                it("creates a parent-facing view model that opens the same feature view") {
+                    let module = InfoModuleFactory().createModule()
+                    let view = module.viewModel.openFeature()
 
-                expect(view.viewModel).to(beIdenticalTo(module.contentViewModel))
+                    expect(view.viewModel).to(beIdenticalTo(module.contentViewModel))
+                }
             }
         }
 

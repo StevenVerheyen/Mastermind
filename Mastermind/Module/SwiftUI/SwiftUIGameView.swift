@@ -6,11 +6,13 @@ struct SwiftUIGameView: View {
     @Bindable var state: GameFeatureState
     let presenter: GamePresentationLogic
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @FocusState private var focusedField: Int?
     @State private var confettiTrigger = 0
 
     private var isLandscape: Bool { verticalSizeClass == .compact }
+    private var actionButtonMaxWidth: CGFloat? { horizontalSizeClass == .regular ? 360 : nil }
 
     /*
      === 🟠 explanation 🟠 ===
@@ -149,6 +151,7 @@ struct SwiftUIGameView: View {
                     .background(AppColors.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
+            .frame(maxWidth: .infinity)
             .disabled(!canSubmitGuess)
             .opacity(canSubmitGuess ? 1.0 : 0.5)
             .accessibilityLabel("Check guess")
@@ -163,16 +166,18 @@ struct SwiftUIGameView: View {
                     Text("New Game")
                         .font(.headline)
                         .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: isLandscape ? 36 : 44, idealHeight: isLandscape ? 40 : 50)
-                    .background(accentColor)
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: isLandscape ? 36 : 44, idealHeight: isLandscape ? 40 : 50)
+                        .background(accentColor)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
+                .frame(maxWidth: .infinity)
                 .accessibilityLabel("Start new game")
                 .accessibilityHint("Generates a new secret code and resets the board")
                 .accessibilityIdentifier("newGameButton")
             }
         }
+        .frame(maxWidth: 360)
     }
 
     private var historySection: some View {

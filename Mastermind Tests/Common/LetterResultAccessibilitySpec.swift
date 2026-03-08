@@ -4,28 +4,39 @@ import Quick
 
 final class LetterResultAccessibilitySpec: QuickSpec {
     override class func spec() {
-        describe("LetterResult accessibility descriptions") {
+        describe("LetterResult.accessibilityDescription") {
             it("describes a correct letter") {
-                let result = LetterResult(id: 0, character: "A", status: .correct)
-                expect(result.accessibilityDescription) == "A, correct position"
+                expectAccessibilityDescription(for: .correct) == "A, correct position"
+            }
+
+            it("describes an unchecked letter") {
+                expectAccessibilityDescription(for: .unknown) == "A, not yet checked"
             }
 
             it("describes a misplaced letter") {
-                let result = LetterResult(id: 1, character: "B", status: .misplaced)
-                expect(result.accessibilityDescription) == "B, wrong position"
+                expectAccessibilityDescription(
+                    for: .misplaced,
+                    id: 1,
+                    character: "B"
+                ) == "B, wrong position"
             }
 
             it("describes a wrong letter") {
-                let result = LetterResult(id: 2, character: "Z", status: .wrong)
-                expect(result.accessibilityDescription) == "Z, not in the word"
+                expectAccessibilityDescription(
+                    for: .wrong,
+                    id: 2,
+                    character: "Z"
+                ) == "Z, not in the word"
             }
+        }
 
+        describe("guess history accessibility output") {
             it("composes spoken history from a full guess result") {
                 let guess = GuessResult(letters: [
-                    LetterResult(id: 0, character: "A", status: .correct),
-                    LetterResult(id: 1, character: "X", status: .wrong),
-                    LetterResult(id: 2, character: "B", status: .misplaced),
-                    LetterResult(id: 3, character: "D", status: .correct),
+                    makeLetterResult(id: 0, character: "A", status: .correct),
+                    makeLetterResult(id: 1, character: "X", status: .wrong),
+                    makeLetterResult(id: 2, character: "B", status: .misplaced),
+                    makeLetterResult(id: 3, character: "D", status: .correct),
                 ])
 
                 let description = guess.letters
@@ -35,5 +46,21 @@ final class LetterResultAccessibilitySpec: QuickSpec {
                 expect(description) == "A, correct position, X, not in the word, B, wrong position, D, correct position"
             }
         }
+    }
+
+    private static func expectAccessibilityDescription(
+        for status: LetterStatus,
+        id: Int = 0,
+        character: Character = "A"
+    ) -> String {
+        makeLetterResult(id: id, character: character, status: status).accessibilityDescription
+    }
+
+    private static func makeLetterResult(
+        id: Int,
+        character: Character,
+        status: LetterStatus
+    ) -> LetterResult {
+        LetterResult(id: id, character: character, status: status)
     }
 }

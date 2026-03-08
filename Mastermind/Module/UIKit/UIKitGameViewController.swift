@@ -3,6 +3,39 @@ import UIKit
 
 final class UIKitGameViewController: UIViewController {
 
+    private enum LayoutMetrics {
+        static let contentInset = UIEdgeInsets(top: 20, left: 24, bottom: 20, right: 24)
+        static let regularMaxContentWidth: CGFloat = 420
+        static let compactMaxContentWidth: CGFloat = 900
+        static let regularRootSpacing: CGFloat = 24
+        static let compactRootSpacing: CGFloat = 16
+        static let regularPanelSpacing: CGFloat = 16
+        static let compactPanelSpacing: CGFloat = 8
+        static let regularAttemptsSpacing: CGFloat = 32
+        static let compactAttemptsSpacing: CGFloat = 16
+        static let regularInputSpacing: CGFloat = 24
+        static let compactInputSpacing: CGFloat = 12
+        static let regularTitleSize: CGFloat = 34
+        static let compactTitleSize: CGFloat = 24
+        static let regularTextFieldFontSize: CGFloat = 32
+        static let compactTextFieldFontSize: CGFloat = 22
+        static let regularTextFieldHeight: CGFloat = 64
+        static let compactTextFieldHeight: CGFloat = 48
+        static let regularHistoryLetterSize: CGFloat = 40
+        static let compactHistoryLetterSize: CGFloat = 32
+        static let regularHistoryFontSize: CGFloat = 18
+        static let compactHistoryFontSize: CGFloat = 14
+        static let regularHistorySpacing: CGFloat = 8
+        static let compactHistorySpacing: CGFloat = 6
+        static let regularButtonHeight: CGFloat = 50
+        static let compactButtonHeight: CGFloat = 40
+    }
+
+    private enum LayoutStyle {
+        case regular
+        case compact
+    }
+
     private let state: GameFeatureState
     private let presenter: GamePresentationLogic
     private let themeManager: ThemeManager
@@ -20,10 +53,12 @@ final class UIKitGameViewController: UIViewController {
     private var historyPanelStack = UIStackView()
     private var rootStack = UIStackView()
     private var scrollView = UIScrollView()
+    private var scrollContentView = UIView()
     private var textFieldHeightConstraints: [NSLayoutConstraint] = []
     private var checkButtonHeightConstraint: NSLayoutConstraint?
     private var newGameButtonHeightConstraint: NSLayoutConstraint?
-    private var isLandscapeLayout: Bool?
+    private var rootStackWidthConstraint: NSLayoutConstraint?
+    private var currentLayoutStyle: LayoutStyle?
 
     // MARK: - Init
 
@@ -58,33 +93,74 @@ final class UIKitGameViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        updateLayoutForOrientation()
+        updateLayout()
     }
 
-    private func updateLayoutForOrientation() {
-        let isLandscape = view.bounds.width > view.bounds.height
-        guard isLandscape != isLandscapeLayout else { return }
-        isLandscapeLayout = isLandscape
+    private var layoutStyle: LayoutStyle {
+        let isCompactPhoneLandscape = traitCollection.userInterfaceIdiom == .phone
+            && view.bounds.width > view.bounds.height
+        return isCompactPhoneLandscape ? .compact : .regular
+    }
 
-        rootStack.axis = isLandscape ? .horizontal : .vertical
-        rootStack.distribution = isLandscape ? .fillEqually : .fill
-        rootStack.alignment = isLandscape ? .top : .fill
-        rootStack.spacing = isLandscape ? 16 : 24
+    private func updateLayout() {
+        updateCenteredContentWidth()
 
-        inputPanelStack.spacing = isLandscape ? 8 : 16
-        inputPanelStack.setCustomSpacing(isLandscape ? 16 : 32, after: attemptsLabel)
-        inputPanelStack.setCustomSpacing(isLandscape ? 12 : 24, after: inputStack)
+        let style = layoutStyle
+        guard style != currentLayoutStyle else { return }
+        currentLayoutStyle = style
 
-        titleLabel.font = .systemFont(ofSize: isLandscape ? 24 : 34, weight: .bold)
+        rootStack.axis = style == .compact ? .horizontal : .vertical
+        rootStack.distribution = style == .compact ? .fillEqually : .fill
+        rootStack.alignment = style == .compact ? .top : .fill
+        rootStack.spacing = style == .compact
+            ? LayoutMetrics.compactRootSpacing
+            : LayoutMetrics.regularRootSpacing
 
-        let textFieldFontSize: CGFloat = isLandscape ? 22 : 32
+        inputPanelStack.spacing = style == .compact
+            ? LayoutMetrics.compactPanelSpacing
+            : LayoutMetrics.regularPanelSpacing
+        inputPanelStack.setCustomSpacing(
+            style == .compact ? LayoutMetrics.compactAttemptsSpacing : LayoutMetrics.regularAttemptsSpacing,
+            after: attemptsLabel
+        )
+        inputPanelStack.setCustomSpacing(
+            style == .compact ? LayoutMetrics.compactInputSpacing : LayoutMetrics.regularInputSpacing,
+            after: inputStack
+        )
+
+        titleLabel.font = .systemFont(
+            ofSize: style == .compact ? LayoutMetrics.compactTitleSize : LayoutMetrics.regularTitleSize,
+            weight: .bold
+        )
+
+        let textFieldFontSize = style == .compact
+            ? LayoutMetrics.compactTextFieldFontSize
+            : LayoutMetrics.regularTextFieldFontSize
         textFields.forEach { $0.font = .monospacedSystemFont(ofSize: textFieldFontSize, weight: .bold) }
-        textFieldHeightConstraints.forEach { $0.constant = isLandscape ? 48 : 64 }
+        textFieldHeightConstraints.forEach {
+            $0.constant = style == .compact
+                ? LayoutMetrics.compactTextFieldHeight
+                : LayoutMetrics.regularTextFieldHeight
+        }
 
-        checkButtonHeightConstraint?.constant = isLandscape ? 40 : 50
-        newGameButtonHeightConstraint?.constant = isLandscape ? 40 : 50
+        let buttonHeight = style == .compact
+            ? LayoutMetrics.compactButtonHeight
+            : LayoutMetrics.regularButtonHeight
+        checkButtonHeightConstraint?.constant = buttonHeight
+        newGameButtonHeightConstraint?.constant = buttonHeight
 
         updateHistory()
+    }
+
+    private func updateCenteredContentWidth() {
+        let availableWidth = max(
+            view.bounds.width - LayoutMetrics.contentInset.left - LayoutMetrics.contentInset.right,
+            0
+        )
+        let maxContentWidth = layoutStyle == .compact
+            ? LayoutMetrics.compactMaxContentWidth
+            : LayoutMetrics.regularMaxContentWidth
+        rootStackWidthConstraint?.constant = min(availableWidth, maxContentWidth)
     }
 
     private var adaptiveAccentColor: UIColor {
@@ -191,16 +267,22 @@ final class UIKitGameViewController: UIViewController {
         historyPanelStack.alignment = .fill
 
         rootStack = UIStackView(arrangedSubviews: [inputPanelStack, historyPanelStack])
-        rootStack.spacing = 24
+        rootStack.axis = .vertical
+        rootStack.spacing = LayoutMetrics.regularRootSpacing
 
-        checkButtonHeightConstraint = checkButton.heightAnchor.constraint(equalToConstant: 50)
-        newGameButtonHeightConstraint = newGameButton.heightAnchor.constraint(equalToConstant: 50)
+        checkButtonHeightConstraint = checkButton.heightAnchor.constraint(equalToConstant: LayoutMetrics.regularButtonHeight)
+        newGameButtonHeightConstraint = newGameButton.heightAnchor.constraint(equalToConstant: LayoutMetrics.regularButtonHeight)
 
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
 
+        scrollContentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(scrollContentView)
+
         rootStack.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.addSubview(rootStack)
+        scrollContentView.addSubview(rootStack)
+
+        rootStackWidthConstraint = rootStack.widthAnchor.constraint(equalToConstant: 0)
 
         var constraints: [NSLayoutConstraint] = [
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -208,12 +290,29 @@ final class UIKitGameViewController: UIViewController {
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            rootStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 20),
-            rootStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 24),
-            rootStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -24),
-            rootStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
-            rootStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -48),
+            scrollContentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            scrollContentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            scrollContentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            scrollContentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            scrollContentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            scrollContentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor),
+
+            rootStack.topAnchor.constraint(equalTo: scrollContentView.topAnchor, constant: LayoutMetrics.contentInset.top),
+            rootStack.leadingAnchor.constraint(
+                greaterThanOrEqualTo: scrollContentView.leadingAnchor,
+                constant: LayoutMetrics.contentInset.left
+            ),
+            rootStack.trailingAnchor.constraint(
+                lessThanOrEqualTo: scrollContentView.trailingAnchor,
+                constant: -LayoutMetrics.contentInset.right
+            ),
+            rootStack.bottomAnchor.constraint(
+                lessThanOrEqualTo: scrollContentView.bottomAnchor,
+                constant: -LayoutMetrics.contentInset.bottom
+            ),
+            rootStack.centerXAnchor.constraint(equalTo: scrollContentView.centerXAnchor),
         ]
+        constraints += [rootStackWidthConstraint].compactMap { $0 }
         constraints += [checkButtonHeightConstraint, newGameButtonHeightConstraint].compactMap { $0 }
         NSLayoutConstraint.activate(constraints)
 
@@ -223,6 +322,8 @@ final class UIKitGameViewController: UIViewController {
             heightConstraint.isActive = true
             textFieldHeightConstraints.append(heightConstraint)
         }
+
+        updateLayout()
     }
 
     private func createLetterTextField(tag: Int) -> UITextField {
@@ -360,9 +461,13 @@ final class UIKitGameViewController: UIViewController {
     }
 
     private func createHistoryRow(attempt: Int, result: GuessResult) -> UIView {
-        let isLandscape = isLandscapeLayout == true
-        let letterSize: CGFloat = isLandscape ? 32 : 40
-        let fontSize: CGFloat = isLandscape ? 14 : 18
+        let isCompactStyle = currentLayoutStyle == .compact
+        let letterSize: CGFloat = isCompactStyle
+            ? LayoutMetrics.compactHistoryLetterSize
+            : LayoutMetrics.regularHistoryLetterSize
+        let fontSize: CGFloat = isCompactStyle
+            ? LayoutMetrics.compactHistoryFontSize
+            : LayoutMetrics.regularHistoryFontSize
 
         let numberLabel = UILabel()
         numberLabel.text = "#\(attempt)"
@@ -373,7 +478,9 @@ final class UIKitGameViewController: UIViewController {
 
         let letterStack = UIStackView()
         letterStack.axis = .horizontal
-        letterStack.spacing = isLandscape ? 6 : 8
+        letterStack.spacing = isCompactStyle
+            ? LayoutMetrics.compactHistorySpacing
+            : LayoutMetrics.regularHistorySpacing
 
         for letter in result.letters {
             let label = UILabel()

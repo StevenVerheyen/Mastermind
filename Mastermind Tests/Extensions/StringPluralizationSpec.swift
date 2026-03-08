@@ -4,7 +4,7 @@ import Quick
 
 final class StringPluralizationSpec: QuickSpec {
     override class func spec() {
-        describe("String pluralization") {
+        describe("String.pluralized(for:)") {
             it("adds s to a word") {
                 expect("game".pluralized(for: 2)) == "games"
             }
